@@ -39,7 +39,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->mainwindowStack->setCurrentIndex(0);
 
     rfids = new rfid;
-    psoc = new Psoc(this, "/dev/psoc5");
+    psoc = new Psoc(this, "/dev/Psoc5");
 
     initLabels();
     initConnections();
@@ -80,8 +80,8 @@ void MainWindow::initConnections()
     connect(this->ui->drinkPickerHomeButton, SIGNAL(clicked()),
             this, SLOT(returnHome()));
 
-    connect(rfids, SIGNAL(newID(QString)),
-            this, SLOT(onNewID(QString)));
+    /*connect(rfids, SIGNAL(newID(QString)),
+            this, SLOT(onNewID(QString)));*/
 
     /** TODO:
             connect psoccom::cupFull to this::returnHome
@@ -179,7 +179,7 @@ void MainWindow::updateDrinkButtons(CardDatabase* db)
 
 void MainWindow::on_testButton_clicked()
 {
-    psoc->writePsoc(QString::number(0xab));
+    psoc->writePsoc("0xab");
 }
 
 int MainWindow::drinkButtonClicked(QString drinkNo)
@@ -189,6 +189,7 @@ int MainWindow::drinkButtonClicked(QString drinkNo)
     /*
       -Is this drink available? if no, print error, else continue:
       -Send signal to psoc to start pouring drinkX
+
       -Show pleaseWait screen and..
         -Subtract correct amount of credit from DB
         -Wait for psoc to send done()??

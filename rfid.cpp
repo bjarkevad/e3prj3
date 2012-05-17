@@ -32,7 +32,7 @@ void rfid::receiveID(QString _ID)
     else if(_ID.toInt() == 251 && !receivedData.isEmpty())
     {
         emit newID(receivedData);
-        qDebug() << receivedData;
+        //qDebug() << receivedData;
         receivedData.clear();
     }
     //Always send reset to prevent getting stuck if card is removed too quickly.. :)

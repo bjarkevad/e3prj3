@@ -6,6 +6,7 @@
 #include "rfid.h"
 #include "psoc.h"
 
+
 namespace Ui {
 class MainWindow;
 }

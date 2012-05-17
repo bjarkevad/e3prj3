@@ -1,5 +1,6 @@
 #include "psoc.h"
 #include <QDebug>
+#include <QDataStream>
 
 
 PsocReader::PsocReader(QString device)
@@ -15,7 +16,7 @@ void PsocReader::setDevice(QString device_)
 void PsocReader::run()
 {
     qint64 bytesRead;
-    char receivedData[512];
+    char receivedData[1];
 
     psoc.setFileName(device);
     if(!psoc.open(QIODevice::ReadOnly))
@@ -23,10 +24,11 @@ void PsocReader::run()
 
     while(!stopped)
     {
-        bytesRead = psoc.read(receivedData, 512);
+        qDebug() << "waiting..";
+        bytesRead = psoc.read(receivedData, 0);
 
         emit sendData(QString::fromAscii(receivedData, sizeof(receivedData)));
-        qDebug() << receivedData;
+        qDebug() << receivedData << " from psoc5";
         sleep(1);
     }
     psoc.close();
@@ -44,17 +46,13 @@ Psoc::Psoc(QObject *parent, QString device_) :
 
 void Psoc::writePsoc(QString dataToWrite_)
 {
-    char *dataToWrite;
-    QByteArray tempData= dataToWrite_.toLocal8Bit();
-    dataToWrite = tempData.data();
-
     psoc.setFileName(device);
 
     if(!psoc.open(QIODevice::WriteOnly))
         return;
 
-    psoc.write(dataToWrite);
-    qDebug() << dataToWrite;
+    psoc.write(dataToWrite_.toAscii());
+    qDebug() << "Data written to PSoC5: " << dataToWrite_.toAscii();
     psoc.close();
 }
 
