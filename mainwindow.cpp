@@ -33,14 +33,12 @@ MainWindow::MainWindow(QWidget *parent) :
 #ifdef TARGET
     this->showFullScreen();
 #endif
-
-    ui->setupUi(this);
+		ui->setupUi(this);
     ui->warningLabel->hide();
     ui->mainwindowStack->setCurrentIndex(0);
 
     rfids = new rfid;
     psoc = new Psoc(this, "/dev/Psoc5");
-
     initLabels();
     initConnections();
     writeSettings();
