@@ -33,7 +33,7 @@ private:
 
     QString currentID;
 
-    void showPleaseWait();
+
     void initLabels();
     void initConnections();
     void updateCreditLabels(QString value);
@@ -46,6 +46,7 @@ private:
 private slots:
     void returnHome();
     void settingsBack();
+    void showPleaseWait();
 
     void onNewID(QString id);
 

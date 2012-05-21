@@ -4,21 +4,37 @@
 #include <QObject>
 #include <QThread>
 #include <QFile>
+#include <QMutex>
+
 
 enum psocTransmitData {
     PSOC_MEASURE = 0x4D,
     PSOC_DONETRANS = 0x51,
     PSOC_RESET = 0x52,
-    PSOC_BOTTLE_A = 0x41,
-    PSOC_BOTTLE_B = 0x42,
+    PSOC_BOTTLE = 0x40,
 };
 
 enum psocRecData {
-    PSOC_NOGLASS = 0x4E,
-    PSOC_STARTMIX = 0x53,
-    PSOC_DONEMIX = 0x46,
-    PSOC_BOTTLE_A_INFO = 0x41,
-    PSOC_BOTTLE_B_INFO = 0x42,
+    PSOC_R_NOGLASS = 0x4E,
+    PSOC_R_STARTMIX = 0x53,
+    PSOC_R_DONEMIX = 0x46,
+};
+
+class QScopedLock
+{
+public:
+    QScopedLock(QMutex &mut_)
+    {
+        mutex = &mut_;
+        mutex->lock();
+    }
+    ~QScopedLock()
+    {
+        mutex->unlock();
+    }
+
+private:
+    QMutex *mutex;
 };
 
 class QThreadX : public QThread
@@ -41,12 +57,14 @@ public:
 private:
     QString device;
     QFile psocFile;
+    QMutex writeMutex;
 
 public slots:
     void writePsoc(unsigned char *data, int len);
 
 signals:
-    void receivedDataSig(unsigned char* data, int len);
+    void receivedDataSig(unsigned char* data);
+    void receivedBottStatus(unsigned char* data);
 
 };
 
@@ -64,10 +82,15 @@ public:
 
 public slots:
     void write(unsigned char *dataToWrite, int len);
-    void receive(unsigned char* receivedData, int len);
+    void receive(unsigned char* receivedData);
+    void receiveBottStatus(unsigned char* receivedData);
 
 signals:
-    void psocResponse(QString data);
+    void noGlass();
+    void mixStarted();
+    void doneMixing();
+    void psocBottResponse(unsigned char bootleId, unsigned char value);
+
     void psocWrite(unsigned char*, int);
 
 private:

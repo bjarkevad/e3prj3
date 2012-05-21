@@ -99,6 +99,11 @@ void MainWindow::returnHome()
             this, SLOT(onNewID(QString)));
 }
 
+void MainWindow::showPleaseWait()
+{
+    ui->mainwindowStack->setCurrentIndex(0);
+}
+
 void MainWindow::onNewID(QString id)
 {
     CardDatabase db(this, ui->addressBox->currentText());
@@ -188,28 +193,13 @@ void MainWindow::on_testButton_clicked()
 
     fclose(node_ptr);
     qDebug() << result;*/
-    unsigned char test[2];
-    test[0] = PSOC_BOTTLE_A;
-    test[1] = 255;
+    unsigned char test[4] {PSOC_BOTTLE_A, 255, 0x41, 0x42};
 
-    psoc->write(test, 2);
+    psoc->write(test, sizeof(test));
 }
 
 int MainWindow::drinkButtonClicked(QString drinkNo)
 {
-    //connect donePouring();
-
-    /*
-      -Is this drink available? if no, print error, else continue:
-      -Send signal to psoc to start pouring drinkX
-
-      -Show pleaseWait screen and..
-        -Subtract correct amount of credit from DB
-        -Wait for psoc to send done()??
-      -Show pleaseTakeDrink screen and wait for psoc to send drinkTaken()?
-      -Return to homescreen
-
-    */
     CardDatabase db(this, ui->addressBox->currentText());
 
     int drinkVal = db.lookupDrink(drinkNo.toInt()).toInt();
@@ -220,9 +210,18 @@ int MainWindow::drinkButtonClicked(QString drinkNo)
         return -1;
     }
 
+    unsigned char toSend[2] {(PSOC_BOTTLE + drinkNo.toInt()), 0x31};
+
+    psoc->write(toSend);
+    connect(psoc, SIGNAL(mixStarted()),
+            this, SLOT(showPleaseWait()));
+    connect(psoc, SIGNAL(doneMixing()),
+            this, SLOT(returnHome()));
+
     db.updateCard(currentID.toInt(), -(drinkVal));
     currentID.clear();
-    returnHome();
+
+    //returnHome();
 
     return 0;
 }
@@ -257,10 +256,7 @@ void MainWindow::on_drinkButton6_clicked()
     drinkButtonClicked(QString::number(6));
 }
 
-void MainWindow::showPleaseWait()
-{
 
-}
 
 void MainWindow::writeSettings()
 {
