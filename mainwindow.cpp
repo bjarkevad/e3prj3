@@ -6,6 +6,7 @@
 #include <QDebug>
 #include <QSettings>
 #include <QCloseEvent>
+#include <QSignalMapper>
 
 #include "mainwindow.h"
 #include "carddatabase.h"
@@ -183,7 +184,7 @@ void MainWindow::updateDrinkButtons(CardDatabase* db)
     ui->drinkButton6->setText(db->lookupDrinkName(6) + "\n" + db->lookupDrink(6));
 }
 
-void MainWindow::on_testButton_clicked()
+/*void MainWindow::on_testButton_clicked()
 {
     //psoc->writePsoc("0xab");
     /*FILE * node_ptr;
@@ -192,11 +193,12 @@ void MainWindow::on_testButton_clicked()
     fread(&result, 1, sizeof(result), node_ptr);
 
     fclose(node_ptr);
-    qDebug() << result;*/
-    unsigned char test[4] {PSOC_BOTTLE_A, 255, 0x41, 0x42};
+    qDebug() << result;
+
+    unsigned char test[4] {(PSOC_BOTTLE + 1), 255, 0x41, 0x42};
 
     psoc->write(test, sizeof(test));
-}
+*/
 
 int MainWindow::drinkButtonClicked(QString drinkNo)
 {
@@ -212,51 +214,40 @@ int MainWindow::drinkButtonClicked(QString drinkNo)
 
     unsigned char toSend[2] {(PSOC_BOTTLE + drinkNo.toInt()), 0x31};
 
-    psoc->write(toSend);
+    psoc->write(toSend, 2);
     connect(psoc, SIGNAL(mixStarted()),
             this, SLOT(showPleaseWait()));
+
+    QSignalMapper *sigMap = new QSignalMapper(this);
+
+    Drink* drink = new Drink(this, currentID.toInt(), (-drinkVal));
+
     connect(psoc, SIGNAL(doneMixing()),
             this, SLOT(returnHome()));
+    //Connect doneMixing to map
+    connect(psoc, SIGNAL(doneMixing()),
+            sigMap, SLOT(map()));
 
-    db.updateCard(currentID.toInt(), -(drinkVal));
+    //map will now emit a drink
+    sigMap->setMapping(psoc, drink);
+
+    //connect mapped to update card, this means that if we receive doneMixing,
+    //the correct card will be updated
+    connect(sigMap, SIGNAL(mapped(QObject*)),
+            &db, SLOT(updateCard(QObject*)));
+
+    //TODO: Time out here, returnToHome after
+    // Clean up
+
+    delete drink;
+    delete sigMap;
+
     currentID.clear();
 
-    //returnHome();
+    returnHome();
 
     return 0;
 }
-
-void MainWindow::on_drinkButton1_clicked()
-{
-    drinkButtonClicked(QString::number(1));
-}
-
-void MainWindow::on_drinkButton2_clicked()
-{
-    drinkButtonClicked(QString::number(2));
-}
-
-void MainWindow::on_drinkButton3_clicked()
-{
-    drinkButtonClicked(QString::number(3));
-}
-
-void MainWindow::on_drinkButton4_clicked()
-{
-    drinkButtonClicked(QString::number(4));
-}
-
-void MainWindow::on_drinkButton5_clicked()
-{
-    drinkButtonClicked(QString::number(5));
-}
-
-void MainWindow::on_drinkButton6_clicked()
-{
-    drinkButtonClicked(QString::number(6));
-}
-
-
 
 void MainWindow::writeSettings()
 {

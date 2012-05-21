@@ -8,7 +8,6 @@
 CardDatabase::CardDatabase(QObject *parent, QString server, QString username, QString password) :
     QObject(parent)
 {
-    qDebug()<< "DB constructor";
     db = new QSqlDatabase();
     *db = QSqlDatabase::addDatabase("QMYSQL");
     db->setHostName(server);
@@ -25,7 +24,6 @@ CardDatabase::CardDatabase(QObject *parent, QString server, QString username, QS
 
 CardDatabase::~CardDatabase()
 {
-    qDebug() << "DB destructor";
     db->close();
     QSqlDatabase::removeDatabase("qt_sql_default_connection");
 
@@ -96,13 +94,17 @@ const QString CardDatabase::lookupDrinkName(const int id)
     return query.value(2).toString();
 }
 
-void CardDatabase::updateCard(const int _id, const int _amount)
+void CardDatabase::updateCard(QObject* drink_)
 {
     /*
     Update _id with credit _amount in database.
     Use negative numbers to subtract from current amount,
     positiv to add to current amount
     */
+
+    Drink *drink= qobject_cast<Drink *>(drink_);
+
+    qDebug() << drink->id << " " << drink->val;
 
     if(!db->isOpen())
     {
@@ -111,18 +113,23 @@ void CardDatabase::updateCard(const int _id, const int _amount)
     }
     QSqlQuery query;
 
-    query.prepare("SELECT CREDIT FROM ids WHERE id=:ID;");
-    query.bindValue(":ID", QVariant(_id));
+    query.prepare("SELECT CREDIT FROM ids WHERE idx=:ID;");
+    query.bindValue(":ID", QVariant(drink->id));
     query.exec();
 
     if(!query.first())
+    {
+        qDebug() << "Query fail";
         return;
+    }
 
-    int newCredit = query.value(0).toInt() + _amount;
+    int newCredit = query.value(0).toInt() + (drink->val);
     qDebug() << "newCredit: " << newCredit;
 
-    query.prepare("UPDATE ids SET credit=:NEW WHERE id=:ID;");
-    query.bindValue(":ID", QVariant(_id));
+    query.prepare("UPDATE ids SET credit=:NEW WHERE idx=:ID;");
+    query.bindValue(":ID", QVariant(drink->id));
     query.bindValue(":NEW", QVariant(newCredit));
     query.exec();
+
+    delete drink;
 }

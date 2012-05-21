@@ -55,8 +55,9 @@ Psoc::Psoc(QObject *parent, QString device_) :
     node->moveToThread(&nodeThread);
     nodeThread.start();
 
-    node->connect(this, SIGNAL(psocWrite(unsigned char*)),
-                  SLOT(writePsoc(unsigned char*)));
+    node->connect(this, SIGNAL(psocWrite(unsigned char*, int)),
+                  SLOT(writePsoc(unsigned char*, int)));
+
     connect(node, SIGNAL(receivedDataSig(unsigned char*)),
             this, SLOT(receive(unsigned char*)));
     connect(node, SIGNAL(receivedBottStatus(unsigned char*)),
