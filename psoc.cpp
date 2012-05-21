@@ -3,65 +3,95 @@
 #include <QDataStream>
 
 
-PsocReader::PsocReader(QString device)
+
+PsocNode::PsocNode(QObject *parent, QString device_)
 {
-    setDevice(device);
 }
 
-void PsocReader::setDevice(QString device_)
+void PsocNode::writePsoc(unsigned char* data, int len)
 {
-    device = device_;
-}
+    unsigned char *dataToSend;
+    unsigned char result[2];
 
-void PsocReader::run()
-{
-    qint64 bytesRead;
-    char receivedData[1];
+    dataToSend = data;
+    FILE * psocFile;
 
-    psoc.setFileName(device);
-    if(!psoc.open(QIODevice::ReadOnly))
+    psocFile = fopen(device.toAscii(),"r+");
+
+    if(psocFile == NULL)
         return;
 
-    while(!stopped)
+    for(int i = 0; i < len; i++)
     {
-        qDebug() << "waiting..";
-        bytesRead = psoc.read(receivedData, 0);
-
-        emit sendData(QString::fromAscii(receivedData, sizeof(receivedData)));
-        qDebug() << receivedData << " from psoc5";
-        sleep(1);
+        qDebug() << "Sending: " << dataToSend[i];
+        fwrite(&dataToSend[i], 1, 1, psocFile);
     }
-    psoc.close();
+
+    fread(&result[0], 1, 1, psocFile);
+
+    //Set this to ASCII 'A'
+    if(result[0] == 0xFF)
+    {
+        fread(&result[1], 1, 1, psocFile);
+        emit receivedDataSig(result, 2);
+    }
+
+    else
+    {
+        emit receivedDataSig(result, 1);
+    }
+
+    fclose(psocFile);
 }
 
+/***********************/
 
 Psoc::Psoc(QObject *parent, QString device_) :
-    QObject(parent)
+    QObject(parent), node(new PsocNode(this, device_))
 {
-    device = device_;
+    node->setDev(device_);
 
-    readerThread = new PsocReader(device);
-    readerThread->start();
+    node->moveToThread(&nodeThread);
+    nodeThread.start();
+
+    node->connect(this, SIGNAL(psocWrite(unsigned char*, int)),
+                  SLOT(writePsoc(unsigned char*, int)));
+    connect(node, SIGNAL(receivedDataSig(unsigned char*, int)),
+            this, SLOT(receive(unsigned char*, int)));
 }
 
-void Psoc::writePsoc(QString dataToWrite_)
+void Psoc::write(unsigned char* dataToWrite, int len)
 {
-    psoc.setFileName(device);
-
-    if(!psoc.open(QIODevice::WriteOnly))
-        return;
-
-    psoc.write(dataToWrite_.toAscii());
-    qDebug() << "Data written to PSoC5: " << dataToWrite_.toAscii();
-    psoc.close();
+    emit psocWrite(dataToWrite, len);
 }
 
-void Psoc::requestStatus(int _id)
+void Psoc::receive(unsigned char *receivedData, int len)
 {
-
+    for(int i = 0; i < len; i++)
+        qDebug() << "Received from Psoc: " << QString::number(receivedData[i]);
 }
 
-void Psoc::requestDrink(int _drinkId)
-{
 
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -33,12 +33,12 @@ MainWindow::MainWindow(QWidget *parent) :
 #ifdef TARGET
     this->showFullScreen();
 #endif
-		ui->setupUi(this);
-    ui->warningLabel->hide();
+    ui->setupUi(this);
+
     ui->mainwindowStack->setCurrentIndex(0);
 
     rfids = new rfid;
-    psoc = new Psoc(this, "/dev/Psoc5");
+    psoc = new Psoc(this, "/dev/psoc");
     initLabels();
     initConnections();
     writeSettings();
@@ -49,6 +49,7 @@ MainWindow::~MainWindow()
 {
     delete ui;
     delete rfids;
+    delete psoc;
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -65,6 +66,7 @@ void MainWindow::initLabels()
     ui->creditValueLabel_2->setFont(creditFont);
     updateCreditLabels("Scan Card..");
     ui->expensiveLabel->hide();
+    ui->warningLabel->hide();
 }
 
 void MainWindow::initConnections()
@@ -80,6 +82,7 @@ void MainWindow::initConnections()
 
     /*connect(rfids, SIGNAL(newID(QString)),
             this, SLOT(onNewID(QString)));*/
+
 
     /** TODO:
             connect psoccom::cupFull to this::returnHome
@@ -177,7 +180,19 @@ void MainWindow::updateDrinkButtons(CardDatabase* db)
 
 void MainWindow::on_testButton_clicked()
 {
-    psoc->writePsoc("0xab");
+    //psoc->writePsoc("0xab");
+    /*FILE * node_ptr;
+    long result;
+    node_ptr = fopen("/dev/psoc","r+");
+    fread(&result, 1, sizeof(result), node_ptr);
+
+    fclose(node_ptr);
+    qDebug() << result;*/
+    unsigned char test[2];
+    test[0] = PSOC_BOTTLE_A;
+    test[1] = 255;
+
+    psoc->write(test, 2);
 }
 
 int MainWindow::drinkButtonClicked(QString drinkNo)

@@ -5,58 +5,77 @@
 #include <QThread>
 #include <QFile>
 
-/*
-    Has its own thread which listens to the SPI driver and sends signals accordingly.
-*/
-class PsocReader : public QThread
+enum psocTransmitData {
+    PSOC_MEASURE = 0x4D,
+    PSOC_DONETRANS = 0x51,
+    PSOC_RESET = 0x52,
+    PSOC_BOTTLE_A = 0x41,
+    PSOC_BOTTLE_B = 0x42,
+};
+
+enum psocRecData {
+    PSOC_NOGLASS = 0x4E,
+    PSOC_STARTMIX = 0x53,
+    PSOC_DONEMIX = 0x46,
+    PSOC_BOTTLE_A_INFO = 0x41,
+    PSOC_BOTTLE_B_INFO = 0x42,
+};
+
+class QThreadX : public QThread
+{
+protected:
+    void run() {this->exec();}
+};
+
+class PsocNode : public QObject
 {
     Q_OBJECT
 public:
-    PsocReader(QString device);
+    PsocNode(QObject *parent = 0, QString device_ = "");
 
-    void setDevice(QString device);
-
-protected:
-    void run();
+    void setDev(QString device_)
+    {
+        device = device_;
+    }
 
 private:
-    volatile bool stopped;
     QString device;
-    QFile psoc;
+    QFile psocFile;
+
+public slots:
+    void writePsoc(unsigned char *data, int len);
 
 signals:
-    void sendData(QString data);
+    void receivedDataSig(unsigned char* data, int len);
+
 };
 
-
-//*********************************************
-
+/***************************************/
 class Psoc : public QObject
 {
     Q_OBJECT
 public:
     explicit Psoc(QObject *parent = 0, QString device_ = "");
-    void writePsoc(QString dataToWrite_);
+
+    ~Psoc()
+    {
+        delete node;
+    }
+
+public slots:
+    void write(unsigned char *dataToWrite, int len);
+    void receive(unsigned char* receivedData, int len);
+
+signals:
+    void psocResponse(QString data);
+    void psocWrite(unsigned char*, int);
 
 private:
-
-    PsocReader *readerThread;
+    PsocNode* node;
     QString device;
-    QFile psoc;
-    
-signals:
-    //Is sent if psoc sends cupFull command
-    void cupFull();
-    //Is sent on commmunication errors
-    void commError(QString _error);
-    //See requestStatus
-    void bottleStatus(int _value);
-    
-public slots:
-    //Request status for bottle with id _id, then sends signal bottleStatus with value
-    void requestStatus(int _id);
-    void requestDrink(int _drinkId);
-    
+    QThreadX nodeThread;
+
+
 };
 
 #endif // PSOC_H
