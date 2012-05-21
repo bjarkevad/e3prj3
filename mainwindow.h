@@ -58,14 +58,14 @@ private slots:
     void on_testDBButton_clicked();
     void on_testPsocButton_clicked();
 
-    void on_testButton_clicked();
+    //void on_testButton_clicked();
 
-    void on_drinkButton1_clicked();
-    void on_drinkButton2_clicked();
-    void on_drinkButton3_clicked();
-    void on_drinkButton4_clicked();
-    void on_drinkButton5_clicked();
-    void on_drinkButton6_clicked();
+    void on_drinkButton1_clicked() { drinkButtonClicked(QString::number(1)); }
+    void on_drinkButton2_clicked() { drinkButtonClicked(QString::number(2)); }
+    void on_drinkButton3_clicked() { drinkButtonClicked(QString::number(3)); }
+    void on_drinkButton4_clicked() { drinkButtonClicked(QString::number(4)); }
+    void on_drinkButton5_clicked() { drinkButtonClicked(QString::number(5)); }
+    void on_drinkButton6_clicked() { drinkButtonClicked(QString::number(6)); }
 
 signals:
     void donePouring();
