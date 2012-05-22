@@ -48,9 +48,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    //These deletes should be called automatically by QObject's parent / child sytem
     delete ui;
     delete rfids;
     delete psoc;
+    delete timeout;
+    delete sigMap;
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -81,7 +84,7 @@ void MainWindow::initConnections()
     connect(this->ui->drinkPickerHomeButton, SIGNAL(clicked()),
             this, SLOT(returnHome()));
 
-    /*NOTE: Disabled for testing..
+    /*NOTE: Disabled for testing purposes
     connect(rfids, SIGNAL(newID(QString)),
             this, SLOT(onNewID(QString)));*/
 
@@ -97,9 +100,17 @@ void MainWindow::returnHome()
             this, SLOT(onNewID(QString)));
 }
 
+void MainWindow::cleanReturnHome()
+{
+    currentID.clear();
+    delete sigMap;
+    delete timeout;
+    returnHome();
+}
+
 void MainWindow::showPleaseWait()
 {
-    ui->mainwindowStack->setCurrentIndex(0);
+    ui->mainwindowStack->setCurrentIndex(2);
 }
 
 void MainWindow::onNewID(QString id)
@@ -152,6 +163,13 @@ void MainWindow::on_testDBButton_clicked()
 
 void MainWindow::on_testPsocButton_clicked()
 {
+
+    connect(psoc, SIGNAL(psocOk(QString)),
+            ui->PsocStatusLabel, SLOT(setText(QString)));
+
+    unsigned char *toSend = new unsigned char[1] {PSOC_TEST};
+
+    psoc->write(toSend, 1);
 }
 
 void MainWindow::on_replaceBottlesButton_clicked()
@@ -181,69 +199,58 @@ void MainWindow::updateDrinkButtons(CardDatabase* db)
     ui->drinkButton6->setText(db->lookupDrinkName(6) + "\n" + db->lookupDrink(6));
 }
 
-/*void MainWindow::on_testButton_clicked()
+void MainWindow::on_testButton_clicked()
 {
-    //psoc->writePsoc("0xab");
-    /*FILE * node_ptr;
-    long result;
-    node_ptr = fopen("/dev/psoc","r+");
-    fread(&result, 1, sizeof(result), node_ptr);
-
-    fclose(node_ptr);
-    qDebug() << result;
-
-    unsigned char test[4] {(PSOC_BOTTLE + 1), 255, 0x41, 0x42};
-
-    psoc->write(test, sizeof(test));
-*/
+    onNewID("109247101");
+}
 
 int MainWindow::drinkButtonClicked(QString drinkNo)
 {
-    CardDatabase db(this, ui->addressBox->currentText());
+    //TODO: destroy this??? Where?
+    CardDatabase *db = new CardDatabase(this, ui->addressBox->currentText());
 
-    int drinkVal = db.lookupDrink(drinkNo.toInt()).toInt();
+    int drinkVal = db->lookupDrink(drinkNo.toInt()).toInt();
 
-    if(drinkVal > db.lookupID(currentID.toInt()).toInt())
+    if(drinkVal > db->lookupID(currentID.toInt()).toInt())
     {
         ui->expensiveLabel->show();
         return -1;
     }
 
     //TODO: Amount from database should be parsed
-
-    unsigned char toSend[2] {(PSOC_BOTTLE + drinkNo.toInt()), 0x31};
-
-    psoc->write(toSend, 2);
     connect(psoc, SIGNAL(mixStarted()),
             this, SLOT(showPleaseWait()));
 
-    QSignalMapper *sigMap = new QSignalMapper(this);
+    showPleaseWait();
 
-    Drink* drink = new Drink(this, currentID.toInt(), (-drinkVal));
+    sigMap = new QSignalMapper(this);
+    Drink *drink = new Drink(this, currentID.toInt(), (-drinkVal));
+    timeout = new QTimer(this);
 
-    connect(psoc, SIGNAL(doneMixing()),
-            this, SLOT(returnHome()));
+    timeout->setSingleShot(true);
+    //TODO: Calibrate timeout
+    timeout->setInterval(2000);
+
+    /*connect(psoc, SIGNAL(doneMixing()),
+            this, SLOT(cleanReturnHome()));*/
+
     //Connect doneMixing to map
     connect(psoc, SIGNAL(doneMixing()),
-            sigMap, SLOT(map()));
+            sigMap, SLOT(map()));    
 
+    connect(timeout, SIGNAL(timeout()),
+            this, SLOT(cleanReturnHome()));
     //map will now emit a drink
     sigMap->setMapping(psoc, drink);
-
     //connect mapped to update card, this means that if we receive doneMixing,
     //the correct card will be updated
     connect(sigMap, SIGNAL(mapped(QObject*)),
             &db, SLOT(updateCard(QObject*)));
 
-    //TODO: Time out here, returnToHome after
-    // Clean up
+    unsigned char* toSend = new unsigned char[2]{(PSOC_BOTTLE + drinkNo.toInt()), 0x31};
+    psoc->write(toSend, 2);
 
-    delete drink;
-    delete sigMap;
-
-    currentID.clear();
-
-    returnHome();
+    timeout->start();
 
     return 0;
 }

@@ -12,6 +12,8 @@ class MainWindow;
 }
 
 class CardDatabase;
+class QSignalMapper;
+class QTimer;
 
 
 class MainWindow : public QMainWindow
@@ -30,9 +32,11 @@ private:
 
     rfid *rfids;
     Psoc *psoc;
-
+    //The currently active RFID card ID
     QString currentID;
 
+    QSignalMapper *sigMap;
+    QTimer *timeout;
 
     void initLabels();
     void initConnections();
@@ -42,11 +46,11 @@ private:
     void readSettings();
     void writeSettings();
 
-
 private slots:
     void returnHome();
     void settingsBack();
     void showPleaseWait();
+    void cleanReturnHome();
 
     void onNewID(QString id);
 
@@ -58,7 +62,7 @@ private slots:
     void on_testDBButton_clicked();
     void on_testPsocButton_clicked();
 
-    //void on_testButton_clicked();
+    void on_testButton_clicked();
 
     void on_drinkButton1_clicked() { drinkButtonClicked(QString::number(1)); }
     void on_drinkButton2_clicked() { drinkButtonClicked(QString::number(2)); }

@@ -113,7 +113,7 @@ void CardDatabase::updateCard(QObject* drink_)
     }
     QSqlQuery query;
 
-    query.prepare("SELECT CREDIT FROM ids WHERE idx=:ID;");
+    query.prepare("SELECT CREDIT FROM ids WHERE id=:ID;");
     query.bindValue(":ID", QVariant(drink->id));
     query.exec();
 
@@ -126,7 +126,7 @@ void CardDatabase::updateCard(QObject* drink_)
     int newCredit = query.value(0).toInt() + (drink->val);
     qDebug() << "newCredit: " << newCredit;
 
-    query.prepare("UPDATE ids SET credit=:NEW WHERE idx=:ID;");
+    query.prepare("UPDATE ids SET credit=:NEW WHERE id=:ID;");
     query.bindValue(":ID", QVariant(drink->id));
     query.bindValue(":NEW", QVariant(newCredit));
     query.exec();

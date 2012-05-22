@@ -8,15 +8,16 @@ PsocNode::PsocNode(QObject *parent, QString device_)
 {
 }
 
-void PsocNode::writePsoc(unsigned char* data, int len)
+void PsocNode::writePsoc(unsigned char* dataToSend, int len)
 {
     QScopedLock slock(writeMutex);
-
-    unsigned char *dataToSend;
+    //unsigned char *dataToSend;
+    //dataToSend = data;
+    //delete data;
     //Expecting a max length of 2
     unsigned char result[2];
 
-    dataToSend = data;
+    //dataToSend = data;
     FILE * psocFile;
 
     psocFile = fopen(device.toAscii(),"r+");
@@ -30,6 +31,7 @@ void PsocNode::writePsoc(unsigned char* data, int len)
         fwrite(&dataToSend[i], 1, 1, psocFile);
     }
 
+    //TODO: Should timeout here
     fread(&result[0], 1, 1, psocFile);
     //If we receive 0x41, we know another char will follow
     //Set this to ASCII 'A'(0x41) and ASCII 'F'(0x46)
@@ -43,6 +45,7 @@ void PsocNode::writePsoc(unsigned char* data, int len)
         emit receivedDataSig(&result[0]);
 
     fclose(psocFile);
+    delete [] dataToSend;
 }
 
 /***********************/
@@ -87,6 +90,14 @@ void Psoc::receive(unsigned char *receivedData)
     case PSOC_R_DONEMIX:
         //'F': Done mixing
       emit doneMixing();
+        break;
+    case PSOC_R_OK:
+        qDebug() << "PSOC_R_OK received";
+        emit psocOk("OK");
+        break;
+    default:
+        emit psocOk("Error");
+        qDebug() << "Received something unknown: " << data;
         break;
     }
 }

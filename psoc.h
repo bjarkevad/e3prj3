@@ -12,12 +12,14 @@ enum psocTransmitData {
     PSOC_DONETRANS = 0x51,
     PSOC_RESET = 0x52,
     PSOC_BOTTLE = 0x40,
+    PSOC_TEST = 0x54,
 };
-
+//NOTE: These should be updated for testing with an actual PSOC
 enum psocRecData {
     PSOC_R_NOGLASS = 0x4E,
     PSOC_R_STARTMIX = 0x53,
-    PSOC_R_DONEMIX = 0x46,
+    PSOC_R_DONEMIX = 0xFF,//0x46,
+    PSOC_R_OK = 0x54,
 };
 
 class QScopedLock
@@ -60,6 +62,7 @@ private:
     QMutex writeMutex;
 
 public slots:
+    //A dynamically allocated "data" must be parsed, or the program will crash.
     void writePsoc(unsigned char *data, int len);
 
 signals:
@@ -89,6 +92,7 @@ signals:
     void noGlass();
     void mixStarted();
     void doneMixing();
+    void psocOk(QString);
     void psocBottResponse(unsigned char bootleId, unsigned char value);
 
     void psocWrite(unsigned char*, int);
