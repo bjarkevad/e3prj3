@@ -1,5 +1,5 @@
 /**
- * Author: Terraneo Federico
+ * Author: Terraneo Federico, modified by Bjarke Vad Andersen
  * Distributed under the Boost Software License, Version 1.0.
  */
 

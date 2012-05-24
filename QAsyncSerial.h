@@ -1,5 +1,5 @@
 /**
- * Author: Terraneo Federico
+ * Author: Terraneo Federico, modified by Bjarke Vad Andersen
  * Distributed under the Boost Software License, Version 1.0.
  */
 
@@ -78,6 +78,7 @@ signals:
 private:
     /**
      * Called when data is received
+     * Modified for easy use with the RFID reader.
      */
     void readCallback(const char *data, size_t size);
 

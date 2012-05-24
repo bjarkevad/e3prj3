@@ -74,7 +74,7 @@ const QString CardDatabase::lookupDrink(const int _id)
     return query.value(1).toString();
 }
 
-const QString CardDatabase::lookupDrinkName(const int id)
+const QString CardDatabase::lookupDrinkName(const int _id)
 {
     if(!db->isOpen())
     {
@@ -85,7 +85,7 @@ const QString CardDatabase::lookupDrinkName(const int id)
     QSqlQuery query;
 
     query.prepare("SELECT * FROM drinks WHERE id=:ID");
-    query.bindValue(":ID", QVariant(id));
+    query.bindValue(":ID", QVariant(_id));
     query.exec();
 
     if(!query.first())
@@ -94,7 +94,7 @@ const QString CardDatabase::lookupDrinkName(const int id)
     return query.value(2).toString();
 }
 
-void CardDatabase::updateCard(QObject* drink_)
+void CardDatabase::updateCard(QObject* drink_, bool dynamic)
 {
     /*
     Update _id with credit _amount in database.
@@ -131,5 +131,10 @@ void CardDatabase::updateCard(QObject* drink_)
     query.bindValue(":NEW", QVariant(newCredit));
     query.exec();
 
+    //Added this flag to fix "onDrinkButton_clicked()" in mainwindow
+    //This way the function works as before, but can be used to destroy dynamically
+    //initialized CardDatabases
+    if(dynamic)
+        this->~CardDatabase();
     delete drink;
 }

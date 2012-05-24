@@ -31,7 +31,6 @@ void PsocNode::writePsoc(unsigned char* dataToSend, int len)
         fwrite(&dataToSend[i], 1, 1, psocFile);
     }
 
-    //TODO: Should timeout here
     fread(&result[0], 1, 1, psocFile);
     //If we receive 0x41, we know another char will follow
     //Set this to ASCII 'A'(0x41) and ASCII 'F'(0x46)

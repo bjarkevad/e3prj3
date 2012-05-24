@@ -27,6 +27,8 @@
 
   */
 
+//TODO: Implement bottle status/calibration
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -70,7 +72,7 @@ void MainWindow::initLabels()
     ui->creditValueLabel_2->setFont(creditFont);
     updateCreditLabels("Scan Card..");
     ui->expensiveLabel->hide();
-    ui->warningLabel->hide();
+    ui->warningLabel->setFont(creditFont);
 }
 
 void MainWindow::initConnections()
@@ -119,12 +121,12 @@ void MainWindow::onNewID(QString id)
 
     if(!db.isOpen())
     {
-        ui->warningLabel->show();
+        ui->warningLabel->setText("Database Error, contact employee");
         return;
     }
 
     else
-        ui->warningLabel->hide();
+        ui->warningLabel->setText("");
 
     const QString credit = db.lookupID(id.toInt());
 
@@ -142,6 +144,7 @@ void MainWindow::onNewID(QString id)
 void MainWindow::on_settingsButton_clicked()
 {
     ui->mainwindowStack->setCurrentIndex(3);
+    ui->warningLabel->setText("");
 }
 
 void MainWindow::on_systemSettingsButton_clicked()
@@ -206,7 +209,6 @@ void MainWindow::on_testButton_clicked()
 
 int MainWindow::drinkButtonClicked(QString drinkNo)
 {
-    //TODO: destroy this??? Where?
     CardDatabase *db = new CardDatabase(this, ui->addressBox->currentText());
 
     int drinkVal = db->lookupDrink(drinkNo.toInt()).toInt();
@@ -221,7 +223,7 @@ int MainWindow::drinkButtonClicked(QString drinkNo)
     connect(psoc, SIGNAL(mixStarted()),
             this, SLOT(showPleaseWait()));
 
-    showPleaseWait();
+   // showPleaseWait();
 
     sigMap = new QSignalMapper(this);
     Drink *drink = new Drink(this, currentID.toInt(), (-drinkVal));
@@ -231,12 +233,11 @@ int MainWindow::drinkButtonClicked(QString drinkNo)
     //TODO: Calibrate timeout
     timeout->setInterval(2000);
 
-    /*connect(psoc, SIGNAL(doneMixing()),
-            this, SLOT(cleanReturnHome()));*/
-
     //Connect doneMixing to map
     connect(psoc, SIGNAL(doneMixing()),
             sigMap, SLOT(map()));    
+    connect(psoc, SIGNAL(psocOk(QString)),
+            ui->warningLabel, SLOT(setText(QString)));
 
     connect(timeout, SIGNAL(timeout()),
             this, SLOT(cleanReturnHome()));
@@ -245,12 +246,15 @@ int MainWindow::drinkButtonClicked(QString drinkNo)
     //connect mapped to update card, this means that if we receive doneMixing,
     //the correct card will be updated
     connect(sigMap, SIGNAL(mapped(QObject*)),
-            &db, SLOT(updateCard(QObject*)));
+            db, SLOT(updateCard(QObject*)));
 
     unsigned char* toSend = new unsigned char[2]{(PSOC_BOTTLE + drinkNo.toInt()), 0x31};
     psoc->write(toSend, 2);
 
     timeout->start();
+
+    /*connect(psoc, SIGNAL(doneMixing()),
+                this, SLOT(cleanReturnHome()));*/
 
     return 0;
 }

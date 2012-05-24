@@ -70,11 +70,6 @@ private slots:
     void on_drinkButton4_clicked() { drinkButtonClicked(QString::number(4)); }
     void on_drinkButton5_clicked() { drinkButtonClicked(QString::number(5)); }
     void on_drinkButton6_clicked() { drinkButtonClicked(QString::number(6)); }
-
-signals:
-    void donePouring();
-
-
 };
 
 #endif // MAINWINDOW_H
