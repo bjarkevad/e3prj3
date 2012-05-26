@@ -35,6 +35,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
 #ifdef TARGET
     this->showFullScreen();
+    ui->testButton->hide();
+    ui->settingsButton->hide();
 #endif
     ui->setupUi(this);
 
@@ -45,8 +47,7 @@ MainWindow::MainWindow(QWidget *parent) :
     initLabels();
     initConnections();
     readSettings();
-    ui->testButton->hide();
-    ui->settingsButton->hide();
+
 }
 
 MainWindow::~MainWindow()
@@ -119,6 +120,7 @@ void MainWindow::cleanReturnHome()
     ui->drinkButton4->setEnabled(true);
     ui->drinkButton5->setEnabled(true);
     ui->drinkButton6->setEnabled(true);
+    ui->drinkPickerHomeButton->setEnabled(true);
     returnHome();
 }
 
@@ -227,10 +229,13 @@ int MainWindow::drinkButtonClicked(QString drinkNo)
     ui->drinkButton4->setEnabled(false);
     ui->drinkButton5->setEnabled(false);
     ui->drinkButton6->setEnabled(false);
+    ui->drinkPickerHomeButton->setEnabled(false);
 
     CardDatabase *db = new CardDatabase(this, ui->addressBox->currentText());
 
     int drinkVal = db->lookupDrink(drinkNo.toInt()).toInt();
+
+    qDebug() << drinkNo;
 
     if(drinkVal > db->lookupID(currentID.toInt()).toInt())
     {

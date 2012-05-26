@@ -1,5 +1,5 @@
 /**
- * Author: Terraneo Federico, modified by Bjarke Vad Andersen
+ * Author: Terraneo Federico, modified by Bjarke Vad Andersen \n
  * Distributed under the Boost Software License, Version 1.0.
  */
 
@@ -77,8 +77,10 @@ signals:
 
 private:
     /**
-     * Called when data is received
+     * Called when data is received.
+     *
      * Modified for easy use with the RFID reader.
+     * Emits a signal if a new ID is detected, or emits the ID of an RFID card followed by an endofline character.
      */
     void readCallback(const char *data, size_t size);
 

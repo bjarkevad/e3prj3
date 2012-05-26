@@ -39,9 +39,11 @@ class QSignalMapper;
 class QTimer;
 
 /**
- * @brief The MainWindow class is used to tie all the different modules of iDrink together.
+ * @brief The MainWindow class is used to tie all the different objects of iDrink together.
  *
- * This class is responsible for handling all GUI related operations.
+ * This class is responsible for handling all GUI related operations,
+ * and implements most of the applications functionality.
+ * This class works much as the "main()" function of a traditional C++ program, since everything is run through this class.
  */
 class MainWindow : public QMainWindow
 {
@@ -51,15 +53,16 @@ public:
     /**
      * @brief Constructor  Responsible for initalizing the application.
      *
-     * Creates the right signal/slot connections,
-     * reads saved settings, allocates an rfid object, and opens a connection to /dev/psoc from a Psoc object.
-     *
+     * Initializes connections, reads saved settings, allocates an rfid object
+     * and opens the node "/dev/psoc" in a Psoc object.
      */
     explicit MainWindow(QWidget *parent = 0);
     /**
      * Destructor
      *
-     * Calls delete on dynamically allocated objects.
+     * Calls delete on dynamically allocated objects. These calls should not really be necessary,
+     * since the application is build around Qt's QObject parent/child functionality, which essentially means that
+     * if an object of baseclass QObject is created with a parent, the object will get deleted at the same time as the parent is.
      */
     ~MainWindow();
 
@@ -68,7 +71,7 @@ protected:
      * @brief Event that happens when the application is closed.
      *
      * Calls "saveSettings()" on exit.
-     * @param event The event that happens when the application gets closed.
+     * @param event The exit event that happens when the application gets closed.
      */
     void closeEvent(QCloseEvent *event);
 
@@ -76,10 +79,9 @@ private:
     /**
      * @brief Pointer to the user interface object.
      *
-     * The object contains all information of the user interface. Ui::MainWindow is generated from a Qt UI form, created in Qt Designer.
+     * The object contains all information of the graphical user interface. Ui::MainWindow is generated from a Qt UI form, created in Qt Designer.
      */
     Ui::MainWindow *ui;
-
     /**
      * @brief Pointer to an rfid object
      *
@@ -131,7 +133,7 @@ private:
     /**
      * @brief Update drink buttons.
      *
-     * The buttons shown when a user is to pick a drink are updated to show the correct names and values of the drinks available.
+     * The buttons, which are used to pick which drink is served, are updated to show the correct names and prices of the drinks available.
      * The information is updated directly from a MYSQL database, to enable live updates of drinks from the MYSQL server.
      * @param db A CardDatabase pointer from which the drink information is pulled. Used to avoid opening multible MYSQL
      * connections, if the calling function already has one open.
@@ -199,7 +201,7 @@ private slots:
     void onNewID(QString id);
 
     /**
-     * @brief Event that happens when the settings button is clicked.
+     * @brief Function that is run when the Settings button is clicked.
      *
      * The system goes to its settings state, where bottle status and system settings are available.
      * The settings button is normally hidden, but the settings state will be activated when an administrator
@@ -207,22 +209,80 @@ private slots:
      */
     void on_settingsButton_clicked();
     /**
-     * @brief Event that happens when the
+     * @brief Function that is run when the Bottle Status button is clicked.
+     *
+     * The administrating user is presented with the level of fluid in the individual bottles.
+     * This feature is not yet fully implemented.
      */
     void on_bottleStatusButton_clicked();
+    /**
+     * @brief Function that is run when the System Settings button is clicked.
+     *
+     * The administrating user is presented with tools to test PSoC5 and MYSQL database connections,
+     * and setting up a different IP address for the MYSQL database server.
+     * The available IP addresses are read from the saved settings, created by "writeSettings()".
+     */
     void on_systemSettingsButton_clicked();
+    /**
+     * @brief Function that is run when the Test Database button is clicked.
+     *
+     * Creates a new CardDatabase object, and tests if a MYSQL database can be opened on the earlier specified IP address.
+     * A text label is updated accordingly to show "OK" on success, and "Error" on failure.
+     * The CardDatabase object is immediately destroyed after testing.
+     */
     void on_testDBButton_clicked();
+    /**
+     * @brief Function that is run when the Test PSoC button is clicked.
+     *
+     * Sends PSOC_TEST to the PSoC device, if the PSoC answers, a text label is shown to inform the administrator that the test was successful.
+     * If the only response is the timeout response from the PSoC node, the administrator is informed that the test failed.
+     */
     void on_testPsocButton_clicked();
 
+    /**
+     * @brief Function that is run when the Test button is clicked.
+     *
+     * The test button is only shown if the application is not compiled with "TARGET" defined,
+     * meaning when it is run on the desktop.
+     * \note This function is only implemented for testing purposes.
+     *
+     */
     void on_testButton_clicked();
 
+    /**
+     * @brief Function that is run when a drink button is clicked.
+     *
+     * When the user has successfully scanned an RFID card, and been directed to the drink picker,
+     * pressing a drink button will call this function.
+     * @param drinkNo The ID of the drink picked by the user. Used to identify which drink is to be mixed,
+     * and how much credit is to be withdrawn from the users RFID card.
+     * @return 0 on success, -1 on error.
+     */
     int drinkButtonClicked(QString drinkNo);
-    void on_drinkButton1_clicked() { drinkButtonClicked(QString::number(1)); }
-    void on_drinkButton2_clicked() { drinkButtonClicked(QString::number(2)); }
-    void on_drinkButton3_clicked() { drinkButtonClicked(QString::number(3)); }
-    void on_drinkButton4_clicked() { drinkButtonClicked(QString::number(4)); }
-    void on_drinkButton5_clicked() { drinkButtonClicked(QString::number(5)); }
-    void on_drinkButton6_clicked() { drinkButtonClicked(QString::number(6)); }
+    /**
+     * @brief Function to forward a specific ID to "drinkButtonClicked()".
+     */
+    void on_drinkButton1_clicked() { drinkButtonClicked("1"); }
+    /**
+     * @brief Function to forward a specific ID to "drinkButtonClicked()".
+     */
+    void on_drinkButton2_clicked() { drinkButtonClicked("2"); }
+    /**
+     * @brief Function to forward a specific ID to "drinkButtonClicked()".
+     */
+    void on_drinkButton3_clicked() { drinkButtonClicked("3"); }
+    /**
+     * @brief Function to forward a specific ID to "drinkButtonClicked()".
+     */
+    void on_drinkButton4_clicked() { drinkButtonClicked("4"); }
+    /**
+     * @brief Function to forward a specific ID to "drinkButtonClicked()".
+     */
+    void on_drinkButton5_clicked() { drinkButtonClicked("5"); }
+    /**
+     * @brief Function to forward a specific ID to "drinkButtonClicked()".
+     */
+    void on_drinkButton6_clicked() { drinkButtonClicked("6"); }
 };
 
 #endif // MAINWINDOW_H

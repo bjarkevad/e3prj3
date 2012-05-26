@@ -14,11 +14,13 @@ rfid::rfid(QObject *parent, QString port, int baudrate) :
 
 void rfid::receiveID(QString _ID)
 {
+    //If a card is detected, request the ID of it
     if(_ID.toInt() == 253)
     {
         sendRequestID();
     }
 
+    //If we are in the process of receiving an ID, add it to receivedData
     else if(_ID.toInt() != 251)
     {
         if(_ID.toInt() < 10)
@@ -29,6 +31,7 @@ void rfid::receiveID(QString _ID)
             receivedData += _ID;
     }
 
+    // If we get the endofline command (251), and receivedData is not empty, emit newID.
     else if(_ID.toInt() == 251 && !receivedData.isEmpty())
     {
         emit newID(receivedData);
@@ -41,12 +44,14 @@ void rfid::receiveID(QString _ID)
 
 void rfid::sendRequestID()
 {
+    //Done this way to increase readability, could be implemented as an enum or whatnot.
     char dataToSend[3]{0xAB, 0x02, 0x02};
     serial->write(dataToSend, strlen(dataToSend));
 }
 
 void rfid::sendReset()
 {
+    //Done this way to increase readability, could be implemented as an enum or whatnot.
     char dataToSend[1]{0x01};
     serial->write(dataToSend, strlen(dataToSend));
 }

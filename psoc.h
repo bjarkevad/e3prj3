@@ -17,7 +17,12 @@
  * http://www.gnu.org/copyleft/gpl.html
  *
  * @section DESCRIPTION
- * The Psoc class is used to connect to a PSoC5 device through a device node.
+ * Contains:\n
+ * - The Psoc class, which is used to connect to a PSoC5 device through a PsocNode object\n
+ * - The psocTransmitData and psocRecData enumerators\n
+ * - The QScopedLock class, which locks a QMutex when it is in scope\n
+ * - The QThreadX class, which is used to impelement threads\n
+ * - The PsocNode class, which is used to communicate with a PSoC5 device through a device node\n
  * @endsection1
  */
 
@@ -44,10 +49,10 @@ enum psocTransmitData {
  * @brief The psocRecData enum, used to make hex values readable by humans. These values are sent from the PSoC5
  */
 enum psocRecData {
-    PSOC_R_NOGLASS = 0x4E,//!<Is sent when no glass is present.
-    PSOC_R_STARTMIX = 0x53,//<!Is sent when the PSoC5 succesfully started mixing a drink.
-    PSOC_R_DONEMIX = 0x46, //<<!Is sent when the PSoC5 is done mixing a drink.
-    PSOC_R_OK = 0x54,//<<!Is sent as a response to "PSOC_TEST" from the DevKit.
+    PSOC_R_NOGLASS = 0x4E, //!< Is sent when no glass is present.
+    PSOC_R_STARTMIX = 0x53,//!< Is sent when the PSoC5 succesfully started mixing a drink.
+    PSOC_R_DONEMIX = 0x46, //!< Is sent when the PSoC5 is done mixing a drink.
+    PSOC_R_OK = 0x54,//!< Is sent as a response to "PSOC_TEST" from the DevKit.
 };
 
 /**
@@ -85,7 +90,7 @@ private:
  *
  * Reimplements the virtual function QThread::run() to run exec().
  * This makes it possible to move any object of basetype QObject to a seperate thread,
- * by calling myQObject.moveToThread(myQThreadX);
+ * by calling:\n myQObject.moveToThread(myQThreadX);
  */
 class QThreadX : public QThread
 {
