@@ -1,6 +1,10 @@
 /**
- * Author: Terraneo Federico, modified by Bjarke Vad Andersen \n
- * Distributed under the Boost Software License, Version 1.0.
+ * @file
+ * @author Terraneo Federico, modified by Bjarke Vad Andersen \n
+ * @version 1.1
+ *
+ * @section LICENSE
+ *  Distributed under the Boost Software License, Version 1.0.
  */
 
 #ifndef QASYNCSERIAL_H

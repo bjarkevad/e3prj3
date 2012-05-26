@@ -1,11 +1,9 @@
 #include "psoc.h"
 #include <QDebug>
-#include <QDataStream>
-
-
 
 PsocNode::PsocNode(QObject *parent, QString device_)
 {
+    setDev(device_);
 }
 
 void PsocNode::writePsoc(unsigned char* dataToSend, int len)
@@ -18,7 +16,6 @@ void PsocNode::writePsoc(unsigned char* dataToSend, int len)
     unsigned char result[2];
 
     //dataToSend = data;
-    FILE * psocFile;
 
     psocFile = fopen(device.toAscii(),"r+");
 
@@ -32,9 +29,9 @@ void PsocNode::writePsoc(unsigned char* dataToSend, int len)
     }
 
     fread(&result[0], 1, 1, psocFile);
-    //If we receive 0x41, we know another char will follow
+    //If we receive a character bettwen 'A' and 'F', we know another char will follow
     //Set this to ASCII 'A'(0x41) and ASCII 'F'(0x46)
-    if(result[0] >= 0xFF && result[0] <= 0x46)
+    if(result[0] >= 0x41 && result[0] <= 0x46)
     {
         fread(&result[1], 1, 1, psocFile);
         emit receivedBottStatus(result);
@@ -52,8 +49,6 @@ void PsocNode::writePsoc(unsigned char* dataToSend, int len)
 Psoc::Psoc(QObject *parent, QString device_) :
     QObject(parent), node(new PsocNode(this, device_))
 {
-    node->setDev(device_);
-
     node->moveToThread(&nodeThread);
     nodeThread.start();
 
