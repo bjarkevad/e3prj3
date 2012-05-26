@@ -71,7 +71,9 @@ public:
 //so a connection will only be open when you need one.
 /**
  * @brief The CardDatabase class connects to a MYSQL database on construction,
- * and disconnects on destruction. This ensures that a connection will only be open when it's needed.
+ * and disconnects on destruction.
+ *
+ * This ensures that a connection will only be open when it's needed.
  */
 class CardDatabase : public QObject
 {
@@ -119,16 +121,22 @@ public slots:
     const QString lookupID(const int _id);
     /**
      * @brief Look up the value of a drink
-     * @param _id The ID of the drink, currently 1-6.
+     * @param _id The ID of the drink to lookup, currently 1-6.
      * @return The value of the drink as a QString
      */
     const QString lookupDrink(const int _id);
     /**
      * @brief Look up the name of a drink
-     * @param _id The ID of the drink, currently 1-6
+     * @param _id The ID of the drink to lookup, currently 1-6
      * @return The name of the drink as a QString
      */
-    const QString lookupDrinkName(const int _id);
+    const QString lookupDrinkName(const int _id);    
+    /**
+     * @brief Checks if an ID is considered administrator.
+     * @param _id The ID of the RFID card.
+     * @return True if the ID is an administrator, false if not.
+     */
+    const bool isAdmin(const int _id);
 };
 
 #endif // CARDDATABASE_H

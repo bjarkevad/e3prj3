@@ -94,6 +94,26 @@ const QString CardDatabase::lookupDrinkName(const int _id)
     return query.value(2).toString();
 }
 
+const bool CardDatabase::isAdmin(const int _id)
+{
+    if(!db->isOpen())
+    {
+        qDebug() << db->lastError();
+        return "0";
+    }
+
+    QSqlQuery query;
+
+    query.prepare("SELECT * FROM ids WHERE id=:ID");
+    query.bindValue(":ID", QVariant(_id));
+    query.exec();
+
+    if(!query.first())
+        return "0";
+
+    return query.value(3).toBool();
+}
+
 void CardDatabase::updateCard(QObject* drink_, bool dynamic)
 {
     /*

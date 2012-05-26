@@ -44,8 +44,9 @@ MainWindow::MainWindow(QWidget *parent) :
     psoc = new Psoc(this, "/dev/psoc");
     initLabels();
     initConnections();
-    writeSettings();
     readSettings();
+    ui->testButton->hide();
+    ui->settingsButton->hide();
 }
 
 MainWindow::~MainWindow()
@@ -70,7 +71,7 @@ void MainWindow::initLabels()
     creditFont.setPointSize(28);
     ui->creditValueLabel->setFont(creditFont);
     ui->creditValueLabel_2->setFont(creditFont);
-    updateCreditLabels("Scan Card..");
+    ui->creditValueLabel->setText("Scan Card..");
     ui->expensiveLabel->hide();
     ui->warningLabel->setFont(creditFont);
 }
@@ -86,16 +87,21 @@ void MainWindow::initConnections()
     connect(this->ui->drinkPickerHomeButton, SIGNAL(clicked()),
             this, SLOT(returnHome()));
 
-    /*NOTE: Disabled for testing purposes
+    /*NOTE: Disabled for testing purposes*/
     connect(rfids, SIGNAL(newID(QString)),
-            this, SLOT(onNewID(QString)));*/
+            this, SLOT(onNewID(QString)));
+
+    connect(psoc, SIGNAL(psocOk(QString)),
+            ui->PsocStatusLabel, SLOT(setText(QString)));
+
+    connect(psoc, SIGNAL(psocOk(QString)),
+            ui->warningLabel, SLOT(setText(QString)));
 
 }
 
 void MainWindow::returnHome()
 {
     ui->mainwindowStack->setCurrentIndex(0);
-    updateCreditLabels("Scan Card..");
     ui->expensiveLabel->hide();
 
     connect(rfids, SIGNAL(newID(QString)),
@@ -107,6 +113,12 @@ void MainWindow::cleanReturnHome()
     currentID.clear();
     delete sigMap;
     delete timeout;
+    ui->drinkButton1->setEnabled(true);
+    ui->drinkButton2->setEnabled(true);
+    ui->drinkButton3->setEnabled(true);
+    ui->drinkButton4->setEnabled(true);
+    ui->drinkButton5->setEnabled(true);
+    ui->drinkButton6->setEnabled(true);
     returnHome();
 }
 
@@ -117,6 +129,9 @@ void MainWindow::showPleaseWait()
 
 void MainWindow::onNewID(QString id)
 {
+    disconnect(rfids, SIGNAL(newID(QString)),
+               this, SLOT(onNewID(QString)));
+
     CardDatabase db(this, ui->addressBox->currentText());
 
     if(!db.isOpen())
@@ -128,17 +143,24 @@ void MainWindow::onNewID(QString id)
     else
         ui->warningLabel->setText("");
 
-    const QString credit = db.lookupID(id.toInt());
+    if(db.isAdmin(id.toInt()))
+    {
+        //Shows the settings screen if the scanned ID is administrator
+        ui->mainwindowStack->setCurrentIndex(3);
+        ui->warningLabel->setText("");
+    }
 
-    //A treshold for minimum credit to continue can be set here
-    updateCreditLabels(credit);
-    currentID = id;
-    updateDrinkButtons(&db);
+    else
+    {
+        const QString credit = db.lookupID(id.toInt());
 
-    ui->mainwindowStack->setCurrentIndex(1);
+        //A treshold for minimum credit to continue can be set here
+        ui->creditValueLabel_2->setText(credit);
+        currentID = id;
+        updateDrinkButtons(&db);
 
-    disconnect(rfids, SIGNAL(newID(QString)),
-               this, SLOT(onNewID(QString)));
+        ui->mainwindowStack->setCurrentIndex(1);
+    }
 }
 
 void MainWindow::on_settingsButton_clicked()
@@ -166,16 +188,12 @@ void MainWindow::on_testDBButton_clicked()
 
 void MainWindow::on_testPsocButton_clicked()
 {
-
-    connect(psoc, SIGNAL(psocOk(QString)),
-            ui->PsocStatusLabel, SLOT(setText(QString)));
-
     unsigned char *toSend = new unsigned char[1] {PSOC_TEST};
 
     psoc->write(toSend, 1);
 }
 
-void MainWindow::on_replaceBottlesButton_clicked()
+void MainWindow::on_bottleStatusButton_clicked()
 {
     ui->mainwindowStack->setCurrentIndex(4);
 }
@@ -183,12 +201,6 @@ void MainWindow::on_replaceBottlesButton_clicked()
 void MainWindow::settingsBack()
 {
     ui->mainwindowStack->setCurrentIndex(3);
-}
-
-void MainWindow::updateCreditLabels(QString value)
-{
-    ui->creditValueLabel->setText(value);
-    ui->creditValueLabel_2->setText(value);
 }
 
 void MainWindow::updateDrinkButtons(CardDatabase* db)
@@ -209,6 +221,13 @@ void MainWindow::on_testButton_clicked()
 
 int MainWindow::drinkButtonClicked(QString drinkNo)
 {
+    ui->drinkButton1->setEnabled(false);
+    ui->drinkButton2->setEnabled(false);
+    ui->drinkButton3->setEnabled(false);
+    ui->drinkButton4->setEnabled(false);
+    ui->drinkButton5->setEnabled(false);
+    ui->drinkButton6->setEnabled(false);
+
     CardDatabase *db = new CardDatabase(this, ui->addressBox->currentText());
 
     int drinkVal = db->lookupDrink(drinkNo.toInt()).toInt();
@@ -236,8 +255,6 @@ int MainWindow::drinkButtonClicked(QString drinkNo)
     //Connect doneMixing to map
     connect(psoc, SIGNAL(doneMixing()),
             sigMap, SLOT(map()));    
-    connect(psoc, SIGNAL(psocOk(QString)),
-            ui->warningLabel, SLOT(setText(QString)));
 
     connect(timeout, SIGNAL(timeout()),
             this, SLOT(cleanReturnHome()));
@@ -252,9 +269,6 @@ int MainWindow::drinkButtonClicked(QString drinkNo)
     psoc->write(toSend, 2);
 
     timeout->start();
-
-    /*connect(psoc, SIGNAL(doneMixing()),
-                this, SLOT(cleanReturnHome()));*/
 
     return 0;
 }

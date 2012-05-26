@@ -42,7 +42,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="homePage">
      <widget class="QPushButton" name="testButton">
@@ -62,7 +62,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>20</y>
+        <y>60</y>
         <width>481</width>
         <height>141</height>
        </rect>
@@ -441,7 +441,7 @@ p, li { white-space: pre-wrap; }
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_5">
        <item>
-        <widget class="QPushButton" name="replaceBottlesButton">
+        <widget class="QPushButton" name="bottleStatusButton">
          <property name="minimumSize">
           <size>
            <width>101</width>

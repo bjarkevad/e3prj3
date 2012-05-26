@@ -58,7 +58,7 @@ class QScopedLock
 public:
     /**
      * @brief Constructor, locks a QMutex when an object is initiated
-     * @param mut_ << Address of the QMutex to lock
+     * @param mut_ Address of the QMutex to lock
      */
     QScopedLock(QMutex &mut_)
     {
@@ -81,7 +81,11 @@ private:
 };
 
 /**
- * @brief The QThreadX class, this is used to make use of threads much more object oriented.
+ * @brief The QThreadX class, this is used to make the use of threads much more object oriented.
+ *
+ * Reimplements the virtual function QThread::run() to run exec().
+ * This makes it possible to move any object of basetype QObject to a seperate thread,
+ * by calling myQObject.moveToThread(myQThreadX);
  */
 class QThreadX : public QThread
 {
