@@ -112,7 +112,7 @@ public slots:
      * @param drink_ This is a Drink object passed as a QObject. This makes it possible to use QSignalMappers. Should contain the cost of the drink and the ID of the buyer.
      * @param dynamic If the database used to run update card was dynammically allocated, this should be set to true.\n Ensures proper garbage collection.
      */
-    void updateCard(QObject *drink_, bool dynamic = false);
+    void updateCard(QObject *drink_, bool dynamic = true);
     /**
      * @brief Looks up and RFID card ID in the database.
      * @param _id The ID to look up.
@@ -137,6 +137,12 @@ public slots:
      * @return True if the ID is an administrator, false if not.
      */
     const bool isAdmin(const int _id);
+    /**
+     * @brief Deletes the current CardDatabase.
+     *
+     * Used to enable deleting a database by using a signal.
+     */
+    void deleteDb();
 };
 
 #endif // CARDDATABASE_H

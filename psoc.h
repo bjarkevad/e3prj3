@@ -168,7 +168,7 @@ signals:
      * If only a single byte is received, this signal is sent with the received data.
      * @param data The single byte array of data received.
      */
-    void receivedDataSig(unsigned char data[1]);
+    void receivedDataSig(unsigned char *data);
     /**
      * @brief The signal that is sent if bottle status data is received.
      *
@@ -176,7 +176,7 @@ signals:
      * "receivedDataSig()" and "receivedBottStatus()" are split into two signals to make it simple to connect to the Psoc class.
      * @param data The two byte long array of data received.
      */
-    void receivedBottStatus(unsigned char data[2]);
+    void receivedBottStatus(unsigned char *data);
 
 };
 
@@ -205,7 +205,6 @@ public:
      */
     ~Psoc()
     {
-        nodeThread.wait();
         delete node;
     }
 

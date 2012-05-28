@@ -13,6 +13,7 @@ void PsocNode::writePsoc(unsigned char* dataToSend, int len)
     //dataToSend = data;
     //delete data;
     //Expecting a max length of 2
+
     unsigned char result[2];
 
     //dataToSend = data;
@@ -90,7 +91,10 @@ void Psoc::receive(unsigned char *receivedData)
         emit psocOk("OK");
         break;
     default:
+        //emit mixStarted();
+        sleep(1);
         emit psocOk("Error");
+        //emit doneMixing();
         qDebug() << "Received something unknown: " << data;
         break;
     }

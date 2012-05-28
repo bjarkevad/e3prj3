@@ -8,6 +8,7 @@
 CardDatabase::CardDatabase(QObject *parent, QString server, QString username, QString password) :
     QObject(parent)
 {
+    qDebug() << "Carddatabase open..";
     db = new QSqlDatabase();
     *db = QSqlDatabase::addDatabase("QMYSQL");
     db->setHostName(server);
@@ -26,7 +27,7 @@ CardDatabase::~CardDatabase()
 {
     db->close();
     QSqlDatabase::removeDatabase("qt_sql_default_connection");
-
+    qDebug() << "Database closed..";
 }
 
 bool CardDatabase::isOpen()
@@ -114,6 +115,11 @@ const bool CardDatabase::isAdmin(const int _id)
     return query.value(3).toBool();
 }
 
+void CardDatabase::deleteDb()
+{
+    this->~CardDatabase();
+}
+
 void CardDatabase::updateCard(QObject* drink_, bool dynamic)
 {
     /*
@@ -121,7 +127,6 @@ void CardDatabase::updateCard(QObject* drink_, bool dynamic)
     Use negative numbers to subtract from current amount,
     positiv to add to current amount
     */
-
     Drink *drink= qobject_cast<Drink *>(drink_);
 
     qDebug() << drink->id << " " << drink->val;
@@ -153,8 +158,9 @@ void CardDatabase::updateCard(QObject* drink_, bool dynamic)
 
     //Added this flag to fix "onDrinkButton_clicked()" in mainwindow
     //This way the function works as before, but can be used to destroy dynamically
-    //initialized CardDatabases
+    //allocated CardDatabases
+    delete drink;
     if(dynamic)
         this->~CardDatabase();
-    delete drink;
+
 }

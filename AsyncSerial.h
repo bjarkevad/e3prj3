@@ -1,7 +1,11 @@
-/*
- * File:   AsyncSerial.h
- * Author: Terraneo Federico
+/**
+ * @file
+ * @author Terraneo Federico
+ *
+ * @section LICENSE
  * Distributed under the Boost Software License, Version 1.0.
+ *
+ * @section DESCRIPTION
  * Created on September 7, 2009, 10:46 AM
  */
 

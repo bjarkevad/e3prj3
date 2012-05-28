@@ -33,12 +33,13 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    ui->setupUi(this);
+
 #ifdef TARGET
     this->showFullScreen();
     ui->testButton->hide();
     ui->settingsButton->hide();
 #endif
-    ui->setupUi(this);
 
     ui->mainwindowStack->setCurrentIndex(0);
 
@@ -47,7 +48,6 @@ MainWindow::MainWindow(QWidget *parent) :
     initLabels();
     initConnections();
     readSettings();
-
 }
 
 MainWindow::~MainWindow()
@@ -74,7 +74,9 @@ void MainWindow::initLabels()
     ui->creditValueLabel_2->setFont(creditFont);
     ui->creditValueLabel->setText("Scan Card..");
     ui->expensiveLabel->hide();
-    ui->warningLabel->setFont(creditFont);
+
+    QPixmap iDrinkLogoPM("logo.png");
+    ui->iDrinkLabel->setPixmap(iDrinkLogoPM);
 }
 
 void MainWindow::initConnections()
@@ -223,14 +225,6 @@ void MainWindow::on_testButton_clicked()
 
 int MainWindow::drinkButtonClicked(QString drinkNo)
 {
-    ui->drinkButton1->setEnabled(false);
-    ui->drinkButton2->setEnabled(false);
-    ui->drinkButton3->setEnabled(false);
-    ui->drinkButton4->setEnabled(false);
-    ui->drinkButton5->setEnabled(false);
-    ui->drinkButton6->setEnabled(false);
-    ui->drinkPickerHomeButton->setEnabled(false);
-
     CardDatabase *db = new CardDatabase(this, ui->addressBox->currentText());
 
     int drinkVal = db->lookupDrink(drinkNo.toInt()).toInt();
@@ -240,14 +234,24 @@ int MainWindow::drinkButtonClicked(QString drinkNo)
     if(drinkVal > db->lookupID(currentID.toInt()).toInt())
     {
         ui->expensiveLabel->show();
+        delete db;
         return -1;
     }
+
+    ui->drinkButton1->setEnabled(false);
+    ui->drinkButton2->setEnabled(false);
+    ui->drinkButton3->setEnabled(false);
+    ui->drinkButton4->setEnabled(false);
+    ui->drinkButton5->setEnabled(false);
+    ui->drinkButton6->setEnabled(false);
+    ui->drinkPickerHomeButton->setEnabled(false);
+
 
     //TODO: Amount from database should be parsed
     connect(psoc, SIGNAL(mixStarted()),
             this, SLOT(showPleaseWait()));
 
-   // showPleaseWait();
+    // showPleaseWait();
 
     sigMap = new QSignalMapper(this);
     Drink *drink = new Drink(this, currentID.toInt(), (-drinkVal));
@@ -255,14 +259,15 @@ int MainWindow::drinkButtonClicked(QString drinkNo)
 
     timeout->setSingleShot(true);
     //TODO: Calibrate timeout
-    timeout->setInterval(2000);
-
-    //Connect doneMixing to map
-    connect(psoc, SIGNAL(doneMixing()),
-            sigMap, SLOT(map()));    
+    timeout->setInterval(4000);
 
     connect(timeout, SIGNAL(timeout()),
             this, SLOT(cleanReturnHome()));
+    connect(timeout, SIGNAL(timeout()),
+            db, SLOT(deleteDb()));
+
+    connect(psoc, SIGNAL(doneMixing()),
+            sigMap, SLOT(map()));
     //map will now emit a drink
     sigMap->setMapping(psoc, drink);
     //connect mapped to update card, this means that if we receive doneMixing,
