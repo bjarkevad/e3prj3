@@ -35,8 +35,10 @@ bool CardDatabase::isOpen()
     return db->isOpen();
 }
 
-const QString CardDatabase::lookupID(const int _id)
+const QString CardDatabase::lookupID(const qlonglong _id)
 {
+
+    qDebug() << "Looking up: " << _id;
     if(!db->isOpen())
     {
         qDebug() << db->lastError();
@@ -50,7 +52,7 @@ const QString CardDatabase::lookupID(const int _id)
     query.exec();
 
     if(!query.first())
-        return "0";
+        return 0;
 
     return query.value(2).toString();
 }
@@ -95,7 +97,7 @@ const QString CardDatabase::lookupDrinkName(const int _id)
     return query.value(2).toString();
 }
 
-const bool CardDatabase::isAdmin(const int _id)
+const bool CardDatabase::isAdmin(const qlonglong _id)
 {
     if(!db->isOpen())
     {
@@ -110,7 +112,7 @@ const bool CardDatabase::isAdmin(const int _id)
     query.exec();
 
     if(!query.first())
-        return "0";
+        return false;
 
     return query.value(3).toBool();
 }

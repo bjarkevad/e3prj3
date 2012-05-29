@@ -96,7 +96,7 @@ void QAsyncSerial::readCallback(const char *data, size_t size)
     {
         unsigned int size_ = data[1];
 
-        for(unsigned int i = 4; i <= size_; i++)
+        for(unsigned int i = 3; i <= size_; i++)
         {
             emit lineReceived(QString::number(data[i]));
         }

@@ -147,7 +147,9 @@ void MainWindow::onNewID(QString id)
     else
         ui->warningLabel->setText("");
 
-    if(db.isAdmin(id.toInt()))
+    qDebug() << "Received ID: " << id;
+
+    if(db.isAdmin(id.toLongLong()))
     {
         //Shows the settings screen if the scanned ID is administrator
         ui->mainwindowStack->setCurrentIndex(3);
@@ -156,9 +158,16 @@ void MainWindow::onNewID(QString id)
 
     else
     {
-        const QString credit = db.lookupID(id.toInt());
+        const QString credit = db.lookupID(id.toLongLong());
 
-        //A treshold for minimum credit to continue can be set here
+        qDebug() << "Credit: " << credit;
+        //If theres 0 credit OR credit is not set, AND the user is not admin - return.
+        if((credit == "0" || credit == "") && !db.isAdmin(id.toLongLong()))
+        {
+            returnHome();
+            return;
+        }
+
         ui->creditValueLabel_2->setText(credit);
         currentID = id;
         updateDrinkButtons(&db);
@@ -231,7 +240,7 @@ int MainWindow::drinkButtonClicked(QString drinkNo)
 
     qDebug() << drinkNo;
 
-    if(drinkVal > db->lookupID(currentID.toInt()).toInt())
+    if(drinkVal > db->lookupID(currentID.toLongLong()).toLongLong())
     {
         ui->expensiveLabel->show();
         delete db;
@@ -247,14 +256,14 @@ int MainWindow::drinkButtonClicked(QString drinkNo)
     ui->drinkPickerHomeButton->setEnabled(false);
 
 
-    //TODO: Amount from database should be parsed
+
     connect(psoc, SIGNAL(mixStarted()),
             this, SLOT(showPleaseWait()));
 
     // showPleaseWait();
 
     sigMap = new QSignalMapper(this);
-    Drink *drink = new Drink(this, currentID.toInt(), (-drinkVal));
+    Drink *drink = new Drink(this, currentID.toLongLong(), (-drinkVal));
     timeout = new QTimer(this);
 
     timeout->setSingleShot(true);
@@ -275,6 +284,7 @@ int MainWindow::drinkButtonClicked(QString drinkNo)
     connect(sigMap, SIGNAL(mapped(QObject*)),
             db, SLOT(updateCard(QObject*)));
 
+     //TODO: Amount from database should be parsed
     unsigned char* toSend = new unsigned char[2]{(PSOC_BOTTLE + drinkNo.toInt()), 0x31};
     psoc->write(toSend, 2);
 

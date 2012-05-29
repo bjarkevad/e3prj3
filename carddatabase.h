@@ -51,7 +51,7 @@ public:
      * @param id_ The RFID card ID.
      * @param val_ The value/cost of the drink.
      */
-    Drink(QObject* parent = 0, int id_ = 0, int val_ = 0) : QObject(parent), id(id_), val(val_){}
+    Drink(QObject* parent = 0, double id_ = 0, int val_ = 0) : QObject(parent), id(id_), val(val_){}
     /**
      * @brief Copy constructor.
      * @param other The object to copy.
@@ -60,7 +60,7 @@ public:
     /**
      * @brief Local copy of the RFID card ID.
      */
-    int id;
+    qlonglong id;
     /**
      * @brief Local copy of the value of the drink.
      */
@@ -118,7 +118,7 @@ public slots:
      * @param _id The ID to look up.
      * @return The credit on the Card as a QString.
      */
-    const QString lookupID(const int _id);
+    const QString lookupID(const qlonglong _id);
     /**
      * @brief Look up the value of a drink
      * @param _id The ID of the drink to lookup, currently 1-6.
@@ -130,13 +130,13 @@ public slots:
      * @param _id The ID of the drink to lookup, currently 1-6
      * @return The name of the drink as a QString
      */
-    const QString lookupDrinkName(const int _id);    
+    const QString lookupDrinkName(const int _id);
     /**
      * @brief Checks if an ID is considered administrator.
      * @param _id The ID of the RFID card.
      * @return True if the ID is an administrator, false if not.
      */
-    const bool isAdmin(const int _id);
+    const bool isAdmin(const qlonglong _id);
     /**
      * @brief Deletes the current CardDatabase.
      *
