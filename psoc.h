@@ -44,7 +44,6 @@ enum psocTransmitData {
     PSOC_BOTTLE = 0x40,//!< Represents the ID of a bottle, should be followed by ID(e.g. (PSOC_BOTTLE + 1) for bottle no. 1.
     PSOC_TEST = 0x54, //!< A test function, used to test connection to the PSoC5
 };
-//NOTE: These should be updated for testing with an actual PSOC
 /**
  * @brief The psocRecData enum, used to make hex values readable by humans. These values are sent from the PSoC5
  */

@@ -37,7 +37,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 #ifdef TARGET
     this->showFullScreen();
-    ui->testButton->hide();
+    //ui->testButton->hide();
     ui->settingsButton->hide();
 #endif
 
@@ -90,9 +90,8 @@ void MainWindow::initConnections()
     connect(this->ui->drinkPickerHomeButton, SIGNAL(clicked()),
             this, SLOT(returnHome()));
 
-    /*NOTE: Disabled for testing purposes*/
-    connect(rfids, SIGNAL(newID(QString)),
-            this, SLOT(onNewID(QString)));
+    /*connect(rfids, SIGNAL(newID(QString)),
+            this, SLOT(onNewID(QString)));*/
 
     connect(psoc, SIGNAL(psocOk(QString)),
             ui->PsocStatusLabel, SLOT(setText(QString)));
@@ -229,7 +228,9 @@ void MainWindow::updateDrinkButtons(CardDatabase* db)
 
 void MainWindow::on_testButton_clicked()
 {
-    onNewID("109247101");
+    //onNewID("106109247101");
+    unsigned char *toSend = new unsigned char[1] {0x42};
+    psoc->write(toSend, 1);
 }
 
 int MainWindow::drinkButtonClicked(QString drinkNo)
@@ -275,7 +276,7 @@ int MainWindow::drinkButtonClicked(QString drinkNo)
     connect(timeout, SIGNAL(timeout()),
             db, SLOT(deleteDb()));
 
-    connect(psoc, SIGNAL(doneMixing()),
+    connect(psoc, SIGNAL(mixStarted()),
             sigMap, SLOT(map()));
     //map will now emit a drink
     sigMap->setMapping(psoc, drink);

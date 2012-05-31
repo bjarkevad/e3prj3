@@ -81,15 +81,10 @@ QAsyncSerial::~QAsyncSerial()
 void QAsyncSerial::readCallback(const char *data, size_t size)
 {
 
-    //Auto scan
+    //Auto scan - 0xAB means the start of a serial, 254 means error
+		//Emits 253, this is interpreted as "card detected" later on.
     if(data[0] != 0xAB && data[0] != 254)
-    {
-        /*for(int i = 1; i <= size; i++)
-        {
-             emit lineReceived(QString::number(data[i]));
-        }*/
         emit lineReceived(QString::number(253));
-    }
 
     //Commands..
     else if(data[0] == 0xAB)
@@ -100,6 +95,7 @@ void QAsyncSerial::readCallback(const char *data, size_t size)
         {
             emit lineReceived(QString::number(data[i]));
         }
+				//End of serial
         emit lineReceived(QString::number(251));
     }
 }

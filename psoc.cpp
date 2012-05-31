@@ -1,6 +1,6 @@
 #include "psoc.h"
 #include <QDebug>
-
+//TODO: Omskriv writePsoc til at separere read og write metoder.
 PsocNode::PsocNode(QObject *parent, QString device_)
 {
     setDev(device_);
@@ -53,9 +53,8 @@ Psoc::Psoc(QObject *parent, QString device_) :
     node->moveToThread(&nodeThread);
     nodeThread.start();
 
-    node->connect(this, SIGNAL(psocWrite(unsigned char*, int)),
-                  SLOT(writePsoc(unsigned char*, int)));
-
+    connect(this, SIGNAL(psocWrite(unsigned char*,int)),
+            node, SLOT(writePsoc(unsigned char*,int)));
     connect(node, SIGNAL(receivedDataSig(unsigned char*)),
             this, SLOT(receive(unsigned char*)));
     connect(node, SIGNAL(receivedBottStatus(unsigned char*)),
@@ -76,14 +75,17 @@ void Psoc::receive(unsigned char *receivedData)
     {
     case PSOC_R_NOGLASS:
         //'N': NO GLASS
+        qDebug() << "No Glass";
         emit noGlass();
         break;
     case PSOC_R_STARTMIX:
         //'S': Start mix
+        qDebug() << "Mix started";
         emit mixStarted();
         break;
     case PSOC_R_DONEMIX:
         //'F': Done mixing
+        qDebug() << "Done mixing";
       emit doneMixing();
         break;
     case PSOC_R_OK:
